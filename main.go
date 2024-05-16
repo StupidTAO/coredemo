@@ -1,17 +1,24 @@
 package main
 
 import (
+	"fmt"
 	"github.com/coredemo/framework"
 	"net/http"
 )
 
 func main() {
-	server := &http.Server{
-		// 自定义的请求核心处理函数
-		Handler: framework.NewCore(),
 
-		// 请求监听地址
-		Addr: ":8080",
+	core := framework.NewCore()
+	registerRouter(core)
+	server := &http.Server{
+		Handler: core,
+		Addr:    ":9091",
 	}
-	server.ListenAndServe()
+
+	fmt.Println("server start...")
+	err := server.ListenAndServe()
+	if err != nil {
+		fmt.Println("err is : ", err.Error())
+	}
+	fmt.Println("end...")
 }
