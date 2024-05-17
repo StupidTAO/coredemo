@@ -1,33 +1,100 @@
 package framework
 
 import (
+	"log"
 	"net/http"
+	"strings"
 )
 
 // 框架核心结构
 type Core struct {
-	router map[string]ControllerHandler
+	router      map[string]*Tree    //all routers
+	middlewares []ControllerHandler //从core这边设置的中间件
 }
 
 // 初始化框架核心结构
 func NewCore() *Core {
-	return &Core{router: map[string]ControllerHandler{}}
+	// 初始化路由
+	router := map[string]*Tree{}
+	router["GET"] = NewTree()
+	router["POST"] = NewTree()
+	router["PUT"] = NewTree()
+	router["DELETE"] = NewTree()
+	return &Core{router: router}
 }
 
-func (c *Core) Get(url string, handler ControllerHandler) {
-	c.router[url] = handler
+// 注册中间件
+func (c *Core) Use(middlewares ...ControllerHandler) {
+	c.middlewares = append(c.middlewares, middlewares...)
+}
+
+// === http method wrap
+
+func (c *Core) Get(url string, handlers ...ControllerHandler) {
+	// 将core的middleware和handlers结合起来
+	allHandlers := append(c.middlewares, handlers...)
+	if err := c.router["GET"].AddRouter(url, allHandlers); err != nil {
+		log.Fatal("add router error: ", err)
+	}
+}
+
+func (c *Core) Post(url string, handlers ...ControllerHandler) {
+	allHandlers := append(c.middlewares, handlers...)
+	if err := c.router["POST"].AddRouter(url, allHandlers); err != nil {
+		log.Fatal("add router error: ", err)
+	}
+}
+
+func (c *Core) Put(url string, handlers ...ControllerHandler) {
+	allHandlers := append(c.middlewares, handlers...)
+	if err := c.router["PUT"].AddRouter(url, allHandlers); err != nil {
+		log.Fatal("add router error: ", err)
+	}
+}
+
+func (c *Core) Delete(url string, handlers ...ControllerHandler) {
+	allHandlers := append(c.middlewares, handlers...)
+	if err := c.router["DELETE"].AddRouter(url, allHandlers); err != nil {
+		log.Fatal("add router error: ", err)
+	}
+}
+
+// ==== http method wrap end
+
+func (c *Core) Group(prefix string) IGroup {
+	return NewGroup(c, prefix)
+}
+
+func (c *Core) FindRouteByRequest(request *http.Request) []ControllerHandler {
+	// uri 和 method 全部转为大写，保证大小写不敏感
+	uri := request.URL.Path
+	method := request.Method
+	upperMethod := strings.ToUpper(method)
+
+	// 查找第一层map
+	if methodHandlers, ok := c.router[upperMethod]; ok {
+		return methodHandlers.FindHandler(uri)
+	}
+
+	return nil
 }
 
 // 框架核心结构实现Handler接口
 func (c *Core) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	ctx := NewContext(request, response)
 
-	// 一个简单的路由选择器，这里直接写死为测试路由
-	url := request.URL.String()[1:]
-	funcHandler := c.router[url]
-	if funcHandler == nil {
+	// 寻找路由
+	handlers := c.FindRouteByRequest(request)
+	if handlers == nil {
+		// 如果没有找到，这里打印日志
+		ctx.Json(404, "not found")
 		return
 	}
 
-	funcHandler(ctx)
+	ctx.SetHandlers(handlers)
+	// 调用路由函数
+	if err := ctx.Next(); err != nil {
+		ctx.Json(500, "inner error")
+		return
+	}
 }
