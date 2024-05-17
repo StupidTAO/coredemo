@@ -3,12 +3,17 @@ package main
 import (
 	"fmt"
 	"github.com/coredemo/framework"
+	"github.com/coredemo/framework/middleware"
 	"net/http"
 )
 
 func main() {
 
 	core := framework.NewCore()
+
+	core.Use(middleware.Recovery())
+	core.Use(middleware.Cost())
+
 	registerRouter(core)
 	server := &http.Server{
 		Handler: core,
