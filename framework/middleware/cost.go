@@ -12,14 +12,14 @@ func Cost() framework.ControllerHandler {
 	return func(c *framework.Context) error {
 		// 记录开始时间
 		start := time.Now()
-
+		log.Printf("api uri start: %v", c.GetRequest().RequestURI)
 		// 使用next执行具体的业务逻辑
 		c.Next()
 
 		// 记录结束时间
 		end := time.Now()
 		cost := end.Sub(start)
-		log.Printf("api uri: %v, cost: %vμs", c.GetRequest().RequestURI, cost.Microseconds())
+		log.Printf("api uri end: %v, cost: %vμs", c.GetRequest().RequestURI, cost.Milliseconds())
 
 		return nil
 	}
