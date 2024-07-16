@@ -100,48 +100,6 @@ func (ctx *Context) Value(key interface{}) interface{} {
 	return ctx.BaseContext().Value(key)
 }
 
-// #region query url
-func (ctx *Context) QueryAll() map[string][]string {
-	if ctx.request != nil {
-		return map[string][]string(ctx.request.URL.Query())
-	}
-	return map[string][]string{}
-}
-
-func (ctx *Context) QueryInt(key string, def int) int {
-	params := ctx.QueryAll()
-	if vals, ok := params[key]; ok {
-		len := len(vals)
-		if len > 0 {
-			intval, err := strconv.Atoi(vals[len-1])
-			if err != nil {
-				return def
-			}
-			return intval
-		}
-	}
-	return def
-}
-
-func (ctx *Context) QueryString(key string, def string) string {
-	params := ctx.QueryAll()
-	if vals, ok := params[key]; ok {
-		len := len(vals)
-		if len > 0 {
-			return vals[len-1]
-		}
-	}
-	return def
-}
-
-func (ctx *Context) QueryArray(key string, def []string) []string {
-	params := ctx.QueryAll()
-	if vals, ok := params[key]; ok {
-		return vals
-	}
-	return def
-}
-
 // #region form post
 func (ctx *Context) FormAll() map[string][]string {
 	if ctx.request != nil {
