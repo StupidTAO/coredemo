@@ -25,7 +25,7 @@ func FooControllerHandler(c *framework.Context) error {
 		// Do real action
 		//panic("painc")
 		time.Sleep(1 * time.Second)
-		c.Json(http.StatusOK, "ok")
+		c.SetStatus(http.StatusOK).Json("ok")
 
 		finish <- struct{}{}
 	}()
@@ -35,13 +35,13 @@ func FooControllerHandler(c *framework.Context) error {
 		c.WriterMux().Lock()
 		defer c.WriterMux().Unlock()
 		log.Println(p)
-		c.Json(http.StatusInternalServerError, "panic")
+		c.SetStatus(http.StatusInternalServerError).Json("panic")
 	case <-finish:
 		fmt.Println("finish")
 	case <-durationCtx.Done():
 		c.WriterMux().Lock()
 		defer c.WriterMux().Unlock()
-		c.Json(http.StatusInternalServerError, "time out")
+		c.SetStatus(http.StatusInternalServerError).Json("time out")
 		c.SetHasTimeout()
 	}
 	return nil
