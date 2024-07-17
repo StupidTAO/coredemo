@@ -1,16 +1,19 @@
+// Copyright 2024 Caohaitao.  All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file.
 package middleware
 
 import (
 	"context"
 	"fmt"
-	"github.com/coredemo/framework"
+	"github.com/gohade/hade/framework/gin"
 	"log"
 	"time"
 )
 
-func Timeout(d time.Duration) framework.ControllerHandler {
+func Timeout(d time.Duration) gin.HandlerFunc {
 	// 使用函数回调
-	return func(c *framework.Context) error {
+	return func(c *gin.Context) {
 		finish := make(chan struct{}, 1)
 		panicChan := make(chan interface{}, 1)
 		// 执行业务逻辑前预操作：初始化超时context
@@ -31,14 +34,12 @@ func Timeout(d time.Duration) framework.ControllerHandler {
 		// 执行业务逻辑后操作
 		select {
 		case p := <-panicChan:
-			c.SetStatus(500).Json("time out")
+			c.ISetStatus(500).IJson("time out")
 			log.Println(p)
 		case <-finish:
 			fmt.Println("finish")
 		case <-durationCtx.Done():
-			c.SetHasTimeout()
-			c.SetStatus(500).Json("time out")
+			c.ISetStatus(500).IJson("time out")
 		}
-		return nil
 	}
 }

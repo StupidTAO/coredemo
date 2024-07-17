@@ -1,2 +1,3 @@
-# coredemo
-learning web frage project
+# github.com/gohade/hade
+
+github.com/gohade/hade for hade

@@ -1,15 +1,12 @@
 package main
 
 import (
-	"github.com/coredemo/framework"
-	"time"
+	"github.com/gohade/hade/framework/gin"
 )
 
-func UserLoginController(c *framework.Context) error {
-	foo, _ := c.QueryString("foo", "def")
+func UserLoginController(c *gin.Context) {
+	foo, _ := c.DefaultQueryString("foo", "def")
 	// 等待10s才结束执行
-	time.Sleep(10 * time.Second)
-	c.SetOkStatus().Json("ok, UserLoginController: " + foo)
-	// 输出结果
-	return nil
+	//time.Sleep(10 * time.Second)
+	c.ISetOkStatus().IJson("ok, UserLoginController: " + foo)
 }
