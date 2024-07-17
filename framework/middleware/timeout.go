@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"github.com/coredemo/framework"
+	"github.com/gohade/hade/framework"
 	"log"
 	"time"
 )

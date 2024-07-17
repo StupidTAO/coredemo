@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/coredemo/framework"
+	"github.com/gohade/hade/framework"
 	"log"
 	"time"
 )

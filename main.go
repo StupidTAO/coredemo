@@ -3,8 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/coredemo/framework"
-	"github.com/coredemo/framework/middleware"
+	"github.com/gohade/hade/framework/gin"
 	"log"
 	"net/http"
 	"os"
@@ -15,10 +14,9 @@ import (
 
 func main() {
 
-	core := framework.NewCore()
+	core := gin.New()
 
-	core.Use(middleware.Recovery())
-	core.Use(middleware.Cost())
+	core.Use(gin.Recovery())
 
 	registerRouter(core)
 	server := &http.Server{
