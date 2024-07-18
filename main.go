@@ -6,8 +6,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gohade/hade/framework/demo"
+	hadeHttp "github.com/gohade/hade/app/http"
+	"github.com/gohade/hade/app/provider/demo"
 	"github.com/gohade/hade/framework/gin"
+	"github.com/gohade/hade/framework/middleware"
+	"github.com/gohade/hade/framework/provider/app"
 	"log"
 	"net/http"
 	"os"
@@ -22,11 +25,13 @@ func main() {
 	core := gin.New()
 
 	// 绑定具体的服务
-	core.Bind(&demo.DemoServiceProvider{})
+	core.Bind(&app.HadeAppProvider{})
+	core.Bind(&demo.DemoProvider{})
 
 	core.Use(gin.Recovery())
+	core.Use(middleware.Cost())
 
-	registerRouter(core)
+	hadeHttp.Routes(core)
 	server := &http.Server{
 		Handler: core,
 		Addr:    ":9091",

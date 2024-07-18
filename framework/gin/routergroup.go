@@ -64,7 +64,7 @@ func (group *RouterGroup) Group(relativePath string, handlers ...HandlerFunc) *R
 }
 
 // BasePath returns the base path of router group.
-// For example, if v := router.Group("/rest/n/v1/api"), v.BasePath() is "/rest/n/v1/api".
+// For example, if v := router.Group("/rest/n/v1/api"), v.v.BaseFolder() is "/rest/n/v1/api".
 func (group *RouterGroup) BasePath() string {
 	return group.basePath
 }
@@ -162,7 +162,8 @@ func (group *RouterGroup) StaticFile(relativePath, filepath string) IRoutes {
 // of the Router's NotFound handler.
 // To use the operating system's file system implementation,
 // use :
-//     router.Static("/static", "/var/www")
+//
+//	router.Static("/static", "/var/www")
 func (group *RouterGroup) Static(relativePath, root string) IRoutes {
 	return group.StaticFS(relativePath, Dir(root, false))
 }
