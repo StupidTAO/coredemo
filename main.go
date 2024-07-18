@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/gohade/hade/framework/demo"
 	"github.com/gohade/hade/framework/gin"
 	"log"
 	"net/http"
@@ -17,7 +18,11 @@ import (
 
 func main() {
 
+	// 创建engine结构
 	core := gin.New()
+
+	// 绑定具体的服务
+	core.Bind(&demo.DemoServiceProvider{})
 
 	core.Use(gin.Recovery())
 

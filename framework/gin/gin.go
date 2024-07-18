@@ -6,6 +6,7 @@ package gin
 
 import (
 	"fmt"
+	"github.com/gohade/hade/framework"
 	"html/template"
 	"net"
 	"net/http"
@@ -57,6 +58,8 @@ type RoutesInfo []RouteInfo
 type Engine struct {
 	RouterGroup
 
+	// 容器
+	container framework.Container
 	// Enables automatic redirection if the current route can't be matched but a
 	// handler for the path with (without) the trailing slash exists.
 	// For example if /foo/ is requested but a route only exists for /foo, the
@@ -148,6 +151,8 @@ var _ IRouter = &Engine{}
 func New() *Engine {
 	debugPrintWARNINGNew()
 	engine := &Engine{
+		// 这里注入了 container
+		container: framework.NewHadeContainer(),
 		RouterGroup: RouterGroup{
 			Handlers: nil,
 			basePath: "/",
@@ -186,7 +191,8 @@ func Default() *Engine {
 
 func (engine *Engine) allocateContext() *Context {
 	v := make(Params, 0, engine.maxParams)
-	return &Context{engine: engine, params: &v}
+	// 在分配新的 Context 的时候，注入了 container
+	return &Context{engine: engine, params: &v, container: engine.container}
 }
 
 // Delims sets template left and right delims and returns a Engine instance.
