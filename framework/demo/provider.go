@@ -24,7 +24,7 @@ func (sp *DemoServiceProvider) IsDefer() bool {
 	return true
 }
 
-// IsDefer 方法表示是否延迟实例化，我们这里设置为 true，将这个服务的实例化延迟到第一次 make 的时候
+// Params方法表示实例化的参数。我们这里只实例化一个参数：container，表示我们在NewDemoService这个函数中，只有一个参数，container
 func (sp *DemoServiceProvider) Params(c framework.Container) []interface{} {
 	return []interface{}{c}
 }

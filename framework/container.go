@@ -55,14 +55,12 @@ func (hade *HadeContainer) PrintProviders() []string {
 }
 
 func (hade *HadeContainer) Bind(provider ServiceProvider) error {
-	fmt.Println("Bind ...")
 	hade.lock.Lock()
 	defer hade.lock.Unlock()
 	key := provider.Name()
 
 	hade.providers[key] = provider
 
-	fmt.Println("hade.providers[key]: ", provider)
 	// if provider is not defer
 	if provider.IsDefer() == false {
 		if err := provider.Boot(hade); err != nil {
@@ -107,7 +105,7 @@ func (hade *HadeContainer) MustMake(key string) interface{} {
 	return serv
 }
 
-// Make 方式调用内部的 make 初始化
+// MakeNew 方式调用内部的 make 初始化
 func (hade *HadeContainer) MakeNew(key string, params []interface{}) (interface{}, error) {
 	return hade.make(key, params, true)
 }
