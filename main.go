@@ -13,14 +13,18 @@ import (
 )
 
 func main() {
+	// 初始化服务容器
 	container := framework.NewHadeContainer()
+	// 绑定App服务提供者
 	container.Bind(&app.HadeAppProvider{})
 	container.Bind(&demo.DemoProvider{})
 
+	// 将HTTP引擎初始化，并且作为服务提供者绑定到服务容器中
 	if engine, err := http.NewHttpEngine(); err == nil {
 		container.Bind(&kernel.HadeKernelProvider{HttpEngine: engine})
 	}
 
+	// 运行root命令
 	if err := console.RunCommand(container); err != nil {
 		panic(err)
 	}
