@@ -1,6 +1,6 @@
 package demo
 
-const DemoKey = "app"
+const DemoKey = "hade:demo"
 
 type IService interface {
 	GetAllStudent() []Student

@@ -2,8 +2,6 @@ package demo
 
 import (
 	demoService "github.com/gohade/hade/app/provider/demo"
-	"github.com/gohade/hade/framework/contract"
-
 	"github.com/gohade/hade/framework/gin"
 )
 
@@ -34,12 +32,11 @@ func NewDemoApi() *DemoApi {
 // @Success 200 array []UserDTO
 // @Router /demo/demo [get]
 func (api *DemoApi) Demo(c *gin.Context) {
-	appService := c.MustMake(contract.AppKey).(contract.App)
-	baseFolder := appService.BaseFolder()
-	//users := api.service.GetUsers()
-	//usersDTO := UserModelsToUserDTOs(users)
-	//c.JSON(200, usersDTO)
-	c.JSON(200, baseFolder)
+	//appService := c.MustMake(contract.AppKey).(contract.App)
+	//baseFolder := appService.BaseFolder()
+	users := api.service.GetUsers()
+	usersDTO := UserModelsToUserDTOs(users)
+	c.JSON(200, usersDTO)
 }
 
 // Demo godoc
@@ -50,7 +47,10 @@ func (api *DemoApi) Demo(c *gin.Context) {
 // @Success 200 array []UserDTO
 // @Router /demo/demo2 [get]
 func (api *DemoApi) Demo2(c *gin.Context) {
-	demoProvider := c.MustMake(demoService.DemoKey).(demoService.IService)
+	demoProvider, ok := c.MustMake(demoService.DemoKey).(demoService.IService)
+	if !ok {
+		c.JSON(500, "inner error: type conversion error")
+	}
 	students := demoProvider.GetAllStudent()
 	usersDTO := StudentsToUserDTOs(students)
 	c.JSON(200, usersDTO)
