@@ -50,7 +50,10 @@ func (api *DemoApi) Demo(c *gin.Context) {
 // @Success 200 array []UserDTO
 // @Router /demo/demo2 [get]
 func (api *DemoApi) Demo2(c *gin.Context) {
-	demoProvider := c.MustMake(demoService.DemoKey).(demoService.IService)
+	demoProvider, ok := c.MustMake(demoService.DemoKey).(demoService.IService)
+	if !ok {
+		c.JSON(500, "inner error: type conversion error")
+	}
 	students := demoProvider.GetAllStudent()
 	usersDTO := StudentsToUserDTOs(students)
 	c.JSON(200, usersDTO)
