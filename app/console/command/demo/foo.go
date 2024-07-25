@@ -20,7 +20,7 @@ var FooCommand = &cobra.Command{
 	Example: "foo命令的例子",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		container := cmd.GetContainer()
-		log.Println(container)
+		log.Println("foo ", container)
 		return nil
 	},
 }
@@ -34,7 +34,7 @@ var Foo1Command = &cobra.Command{
 	Example: "foo1命令的例子",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		container := cmd.GetContainer()
-		log.Println(container)
+		log.Println("foo1 ", container)
 		return nil
 	},
 }
