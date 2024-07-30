@@ -19,8 +19,18 @@ var FooCommand = &cobra.Command{
 	Aliases: []string{"fo", "f"},
 	Example: "foo命令的例子",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		container := cmd.GetContainer()
-		log.Println("foo ", container)
+		/*container := cmd.GetContainer()
+		configService, ok := container.MustMake(contract.ConfigKey).(contract.Config)
+		if !ok {
+			return errors.New("container make configServic failed")
+		}
+		envService, ok := container.MustMake(contract.EnvKey).(contract.Env)
+		if !ok {
+			return errors.New("container make envServic failed")
+		}
+		fmt.Println("APP_ENV: ", envService.Get("APP_ENV"))
+		fmt.Println("FOO_ENV: ", envService.Get("FOO_ENV"))
+		fmt.Println("config url: ", configService.GetString("app.url"))*/
 		return nil
 	},
 }

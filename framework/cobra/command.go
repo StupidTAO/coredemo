@@ -39,7 +39,7 @@ type FParseErrWhitelist flag.ParseErrorsWhitelist
 type Command struct {
 	// Add By caohaitao
 	Cron      *cron.Cron
-	CronSepcs []CommandSpec
+	CronSpecs []CronSpec
 	// 服务容器
 	container framework.Container
 	// Use is the one-line usage message.
