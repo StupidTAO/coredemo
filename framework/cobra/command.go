@@ -20,13 +20,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/gohade/hade/framework"
+	"github.com/robfig/cron/v3"
+	flag "github.com/spf13/pflag"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	flag "github.com/spf13/pflag"
 )
 
 // FParseErrWhitelist configures Flag parse errors to be ignored
@@ -37,6 +37,9 @@ type FParseErrWhitelist flag.ParseErrorsWhitelist
 // you to define the usage and description as part of your command
 // definition to ensure usability.
 type Command struct {
+	// Add By caohaitao
+	Cron      *cron.Cron
+	CronSpecs []CronSpec
 	// 服务容器
 	container framework.Container
 	// Use is the one-line usage message.
