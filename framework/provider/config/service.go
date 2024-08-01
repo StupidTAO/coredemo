@@ -2,6 +2,8 @@ package config
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/contract"
 	"github.com/mitchellh/mapstructure"
@@ -9,9 +11,11 @@ import (
 	"github.com/spf13/cast"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -21,11 +25,52 @@ type HadeConfig struct {
 	folder   string
 	keyDelim string
 
+	lock     sync.RWMutex
 	envMaps  map[string]string // envmap
 	confMaps map[string]interface{}
 	confRaws map[string][]byte
 }
 
+// 读取某个配置文件
+func (conf *HadeConfig) loadConfigFile(folder string, file string) error {
+	conf.lock.Lock()
+	defer conf.lock.Unlock()
+	s := strings.Split(file, ".")
+	if len(s) == 2 && (s[1] == "yaml" || s[1] == "yml") {
+		name := s[0]
+
+		// 读取文件内容
+		bf, err := ioutil.ReadFile(filepath.Join(folder, file))
+		if err != nil {
+			return err
+		}
+		// 系统只会加载development、production、testing其中的一个
+		conf.confRaws[name] = bf
+		// 直接针对文本做环境变量的替换
+		bf = replace(bf, conf.envMaps)
+		// 解析对应的文件
+		c := map[string]interface{}{}
+		if err := yaml.Unmarshal(bf, &c); err != nil {
+			return err
+		}
+		conf.confMaps[name] = c
+	}
+	return nil
+}
+
+func (conf *HadeConfig) removeConfigFile(folder string, file string) error {
+	conf.lock.Lock()
+	defer conf.lock.Unlock()
+	s := strings.Split(file, ".")
+	if len(s) == 2 && (s[1] == "yaml" || s[2] == "yml") {
+		name := s[0]
+		delete(conf.confRaws, name)
+		delete(conf.confMaps, name)
+	}
+	return nil
+}
+
+// NewHadeConfig 初始化Config方法
 func NewHadeConfig(params ...interface{}) (interface{}, error) {
 	if len(params) != 3 {
 		return nil, errors.New("NewHadeConfig params error")
@@ -58,6 +103,7 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 		confMaps: map[string]interface{}{},
 		confRaws: map[string][]byte{},
 		keyDelim: ".",
+		lock:     sync.RWMutex{},
 	}
 
 	// 读取每个文件
@@ -67,24 +113,11 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 	}
 
 	for _, file := range files {
-		s := strings.Split(file.Name(), ".")
-		if len(s) == 2 && (s[1] == "yaml" || s[1] == "yml") {
-			name := s[0]
-
-			// 读取文件内容
-			bf, err := ioutil.ReadFile(filepath.Join(envFolder, file.Name()))
-			if err != nil {
-				continue
-			}
-			hadeConf.confRaws[name] = bf
-			// 直接针对文本做环境变量的替换
-			bf = replace(bf, envMaps)
-			// 解析对应的文件
-			c := map[string]interface{}{}
-			if err := yaml.Unmarshal(bf, &c); err != nil {
-				continue
-			}
-			hadeConf.confMaps[name] = c
+		fileName := file.Name()
+		err := hadeConf.loadConfigFile(envFolder, fileName)
+		if err != nil {
+			log.Println(err)
+			continue
 		}
 	}
 
@@ -97,6 +130,60 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 		}
 		appService.LoadAppConfig(appPaths)
 	}
+
+	// 监控文件夹文件
+	watch, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, err
+	}
+	err = watch.Add(envFolder)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Println(err)
+			}
+		}()
+
+		for {
+			select {
+			case ev := <-watch.Events:
+				{
+					// 判断事件发生的类型，如下5中
+					// Create 创建
+					// Write 写入
+					// Remove 删除
+					path, _ := filepath.Abs(ev.Name)
+					index := strings.LastIndex(path, string(os.PathSeparator))
+
+					folder := path[:index]
+					filename := path[index+1:]
+
+					if ev.Op&fsnotify.Create == fsnotify.Create {
+						log.Println("创建文件 : ", ev.Name)
+						hadeConf.loadConfigFile(folder, filename)
+					}
+					if ev.Op&fsnotify.Write == fsnotify.Write {
+						log.Println("写入文件 : ", ev.Name)
+						hadeConf.loadConfigFile(folder, ev.Name)
+					}
+					if ev.Op&fsnotify.Remove == fsnotify.Remove {
+						log.Println("删除文件 : ", ev.Name)
+						hadeConf.removeConfigFile(folder, ev.Name)
+					}
+				}
+			case err := <-watch.Errors:
+				{
+					log.Println("error : ", err)
+					return
+				}
+
+			}
+		}
+	}()
 	return hadeConf, nil
 }
 
@@ -138,6 +225,8 @@ func searchMap(source map[string]interface{}, path []string) interface{} {
 }
 
 func (conf *HadeConfig) find(key string) interface{} {
+	conf.lock.RLock()
+	defer conf.lock.RUnlock()
 	return searchMap(conf.confMaps, strings.Split(key, conf.keyDelim))
 }
 

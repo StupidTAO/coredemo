@@ -2,6 +2,7 @@ package demo
 
 import (
 	demoService "github.com/gohade/hade/app/provider/demo"
+	"github.com/gohade/hade/framework/contract"
 	"github.com/gohade/hade/framework/gin"
 )
 
@@ -34,9 +35,16 @@ func NewDemoApi() *DemoApi {
 func (api *DemoApi) Demo(c *gin.Context) {
 	//appService := c.MustMake(contract.AppKey).(contract.App)
 	//baseFolder := appService.BaseFolder()
-	users := api.service.GetUsers()
-	usersDTO := UserModelsToUserDTOs(users)
-	c.JSON(200, usersDTO)
+	//users := api.service.GetUsers()
+	//usersDTO := UserModelsToUserDTOs(users)
+	//c.JSON(200, usersDTO)
+	configService, ok := c.MustMake(contract.ConfigKey).(contract.Config)
+	if !ok {
+		c.JSON(500, "inner error: type conversion error")
+		return
+	}
+	password := configService.GetString("database.mysql.password")
+	c.JSON(200, password)
 }
 
 // Demo godoc
@@ -50,6 +58,7 @@ func (api *DemoApi) Demo2(c *gin.Context) {
 	demoProvider, ok := c.MustMake(demoService.DemoKey).(demoService.IService)
 	if !ok {
 		c.JSON(500, "inner error: type conversion error")
+		return
 	}
 	students := demoProvider.GetAllStudent()
 	usersDTO := StudentsToUserDTOs(students)
