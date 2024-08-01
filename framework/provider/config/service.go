@@ -21,20 +21,21 @@ import (
 
 // HadeConfig 表示hade框架的配置文件服务
 type HadeConfig struct {
-	c        framework.Container
-	folder   string
-	keyDelim string
+	c        framework.Container // 容器
+	folder   string              // 文件夹
+	keyDelim string              // 路径的分隔符，默认为点
 
-	lock     sync.RWMutex
-	envMaps  map[string]string // envmap
-	confMaps map[string]interface{}
-	confRaws map[string][]byte
+	lock     sync.RWMutex           // 配置文件读写锁
+	envMaps  map[string]string      // 所有的环境变量
+	confMaps map[string]interface{} // 配置文件结构，key为文件名
+	confRaws map[string][]byte      // 配置文件的原始信息
 }
 
 // 读取某个配置文件
 func (conf *HadeConfig) loadConfigFile(folder string, file string) error {
 	conf.lock.Lock()
 	defer conf.lock.Unlock()
+	// 判断文件是否以yaml或者yml作为后缀
 	s := strings.Split(file, ".")
 	if len(s) == 2 && (s[1] == "yaml" || s[1] == "yml") {
 		name := s[0]
@@ -44,8 +45,7 @@ func (conf *HadeConfig) loadConfigFile(folder string, file string) error {
 		if err != nil {
 			return err
 		}
-		// 系统只会加载development、production、testing其中的一个
-		conf.confRaws[name] = bf
+
 		// 直接针对文本做环境变量的替换
 		bf = replace(bf, conf.envMaps)
 		// 解析对应的文件
@@ -54,16 +54,31 @@ func (conf *HadeConfig) loadConfigFile(folder string, file string) error {
 			return err
 		}
 		conf.confMaps[name] = c
+		// 系统只会加载development、production、testing其中的一个
+		conf.confRaws[name] = bf
+
+		// 读取app.path中的信息，更新app对应的folder
+		if name == "app" && conf.c.IsBind(contract.AppKey) {
+			if p, ok := c["path"]; ok {
+				appService, ok := conf.c.MustMake(contract.AppKey).(contract.App)
+				if !ok {
+					return errors.New("appService contrv failed")
+				}
+				appService.LoadAppConfig(cast.ToStringMapString(p))
+			}
+		}
 	}
 	return nil
 }
 
+// 删除文件操作
 func (conf *HadeConfig) removeConfigFile(folder string, file string) error {
 	conf.lock.Lock()
 	defer conf.lock.Unlock()
 	s := strings.Split(file, ".")
 	if len(s) == 2 && (s[1] == "yaml" || s[2] == "yml") {
 		name := s[0]
+		// 删除内存中对应的key
 		delete(conf.confRaws, name)
 		delete(conf.confMaps, name)
 	}
@@ -90,7 +105,7 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 		return nil, errors.New("third param is error")
 	}
 
-	// check folder exist
+	// 检查文件夹是否存在
 	if _, err := os.Stat(envFolder); os.IsNotExist(err) {
 		return nil, errors.New("folder" + envFolder + "not exist: " + err.Error())
 	}
@@ -152,7 +167,7 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 			select {
 			case ev := <-watch.Events:
 				{
-					// 判断事件发生的类型，如下5中
+					// 判断事件发生的类型
 					// Create 创建
 					// Write 写入
 					// Remove 删除
@@ -187,11 +202,13 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 	return hadeConf, nil
 }
 
+// replace 表示使用环境变量maps替换context中的env(xxx)的环境变量
 func replace(content []byte, maps map[string]string) []byte {
 	if maps == nil {
 		return content
 	}
 
+	// 直接使用ReplaceAll替换。这个性能可能不是最优，但是配置文件加载，频率是比较低的，可以接受
 	for key, val := range maps {
 		reKey := "env(" + key + ")"
 		content = bytes.ReplaceAll(content, []byte(reKey), []byte(val))
@@ -199,31 +216,37 @@ func replace(content []byte, maps map[string]string) []byte {
 	return content
 }
 
+// 查找某个路径的配置项
 func searchMap(source map[string]interface{}, path []string) interface{} {
 	if len(path) == 0 {
 		return source
 	}
 
+	// 判断是否有下个路径
 	next, ok := source[path[0]]
 	if ok {
-		// fast path
+		// 判断这个路径是否为1
 		if len(path) == 1 {
 			return next
 		}
 
-		// Nested case
+		// 判断下一个路径的类型
 		switch next.(type) {
 		case map[interface{}]interface{}:
+			// 如果是interface的map，使用cast进行下value转换
 			return searchMap(cast.ToStringMap(next), path[1:])
 		case map[string]interface{}:
+			// 如果是map[string]，直接循环调用
 			return searchMap(next.(map[string]interface{}), path[1:])
 		default:
+			// 否则的话，返回nil
 			return nil
 		}
 	}
 	return nil
 }
 
+// 通过path来获取某个配置项
 func (conf *HadeConfig) find(key string) interface{} {
 	conf.lock.RLock()
 	defer conf.lock.RUnlock()
@@ -235,17 +258,17 @@ func (conf *HadeConfig) IsExist(key string) bool {
 	return conf.find(key) != nil
 }
 
-// Get a new interface
+// Get 获取某个配置项
 func (conf *HadeConfig) Get(key string) interface{} {
 	return conf.find(key)
 }
 
-// GetBool get bool type
+// GetBool 获取bool类型配置
 func (conf *HadeConfig) GetBool(key string) bool {
 	return cast.ToBool(conf.find(key))
 }
 
-// GetInt get Int type
+// GetInt 获取int类型配置
 func (conf *HadeConfig) GetInt(key string) int {
 	return cast.ToInt(conf.find(key))
 }

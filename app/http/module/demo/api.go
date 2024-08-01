@@ -33,11 +33,6 @@ func NewDemoApi() *DemoApi {
 // @Success 200 array []UserDTO
 // @Router /demo/demo [get]
 func (api *DemoApi) Demo(c *gin.Context) {
-	//appService := c.MustMake(contract.AppKey).(contract.App)
-	//baseFolder := appService.BaseFolder()
-	//users := api.service.GetUsers()
-	//usersDTO := UserModelsToUserDTOs(users)
-	//c.JSON(200, usersDTO)
 	configService, ok := c.MustMake(contract.ConfigKey).(contract.Config)
 	if !ok {
 		c.JSON(500, "inner error: type conversion error")

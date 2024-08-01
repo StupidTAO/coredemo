@@ -8,11 +8,8 @@ import (
 	"github.com/kr/pretty"
 )
 
-var configPath string
-
 // initConfigCommand 获取配置相关的命令
 func initConfigCommand() *cobra.Command {
-	configGetCommand.Flags().StringVarP(&configPath, "path", "p", "", "配置文件路径")
 	configCommand.AddCommand(configGetCommand)
 	return configCommand
 }
@@ -39,6 +36,11 @@ var configGetCommand = &cobra.Command{
 		if !ok {
 			return errors.New("configService contrv failed")
 		}
+		if len(args) != 1 {
+			fmt.Println("参数错误")
+			return nil
+		}
+		configPath := args[0]
 		val := configService.Get(configPath)
 		if val == nil {
 			fmt.Println("配置路径 ", configPath, " 不存在")
