@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/contract"
 	"github.com/mitchellh/mapstructure"
@@ -88,7 +89,7 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 		}
 	}
 
-	// 初始化config
+	// 读取app.path中的信息，更新app对应的folder
 	if hadeConf.IsExist("app.path") && container.IsBind(contract.AppKey) {
 		appPaths := hadeConf.GetStringMapString("app.path")
 		appService, ok := container.MustMake(contract.AppKey).(contract.App)
