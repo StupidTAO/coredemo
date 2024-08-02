@@ -27,9 +27,9 @@ type TraceContext struct {
 }
 
 type Trace interface {
-	WithTrace(c context.Context, trace TraceContext) context.Context
+	WithTrace(c context.Context, trace *TraceContext) context.Context
 	GetTrace(c context.Context) *TraceContext
-	NewTrace(c context.Context) *TraceContext
+	NewTrace() *TraceContext
 	StartSpan(trace *TraceContext) *TraceContext
 	ToMap(trace *TraceContext) map[string]string
 	ExtractHTTP(req *http.Request) *TraceContext

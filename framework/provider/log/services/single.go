@@ -46,7 +46,7 @@ func NewHadeSingleLog(params ...interface{}) (interface{}, error) {
 
 	log := &HadeSingleLog{}
 	log.SetLevel(level)
-	log.SetCxtFielder(ctxFielder)
+	log.SetCtxFielder(ctxFielder)
 	log.SetFormatter(formatter)
 
 	folder := appService.LogFolder()

@@ -91,7 +91,7 @@ func NewHadeRotateLog(params ...interface{}) (interface{}, error) {
 
 	log := &HadeRotateLog{}
 	log.SetLevel(level)
-	log.SetCxtFielder(ctxFielder)
+	log.SetCtxFielder(ctxFielder)
 	log.SetFormatter(formatter)
 	log.SetFile(file)
 	log.SetFolder(folder)

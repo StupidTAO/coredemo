@@ -91,7 +91,7 @@ func (log *HadeLog) SetLevel(level contract.LogLevel) {
 	log.level = level
 }
 
-func (log *HadeLog) SetCxtFielder(handler contract.CtxFielder) {
+func (log *HadeLog) SetCtxFielder(handler contract.CtxFielder) {
 	log.ctxFielder = handler
 }
 

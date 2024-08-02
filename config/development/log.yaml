@@ -1,4 +1,5 @@
-driver: console
+driver: custom
+formatter: text
 level: trace
 
 #driver: rorate # 切割日志

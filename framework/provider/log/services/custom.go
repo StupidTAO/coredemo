@@ -1,18 +1,17 @@
 package services
 
 import (
-	"errors"
-	"fmt"
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/contract"
-	"os"
+	"github.com/pkg/errors"
+	"io"
 )
 
-type HadeConsoleLog struct {
+type HadeCustomLog struct {
 	HadeLog
 }
 
-func NewHadeConsoleLog(params ...interface{}) (interface{}, error) {
+func NewHadeCustomLog(params ...interface{}) (interface{}, error) {
 	level, ok := params[0].(contract.LogLevel)
 	if !ok {
 		return nil, errors.New("level param contrv filed")
@@ -29,16 +28,18 @@ func NewHadeConsoleLog(params ...interface{}) (interface{}, error) {
 	if !ok {
 		return nil, errors.New("container param contrv filed")
 	}
+	output, ok := params[4].(io.Writer)
+	if !ok {
+		return nil, errors.New("container param writer failed")
+	}
 
-	log := &HadeConsoleLog{}
-	fmt.Println("### NewHadeConsoleLog log : ", log)
-
+	log := &HadeCustomLog{}
 	log.SetLevel(level)
 	log.SetCtxFielder(ctxFielder)
 	log.SetFormatter(formatter)
 
-	log.SetOutput(os.Stdout)
+	log.SetOutput(output)
 	log.c = c
-	fmt.Println("### NewHadeConsoleLog log : ", log)
+
 	return log, nil
 }
