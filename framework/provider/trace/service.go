@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/contract"
+	"github.com/gohade/hade/framework/gin"
 	"github.com/pkg/errors"
 	"net/http"
 	"time"
@@ -33,11 +34,22 @@ func NewHadeTraceService(params ...interface{}) (interface{}, error) {
 }
 
 func (t *HadeTraceService) WithTrace(c context.Context, trace *contract.TraceContext) context.Context {
-	newC := context.WithValue(c, ContextKey, trace)
-	return newC
+	if ginC, ok := c.(*gin.Context); ok {
+		ginC.Set(string(ContextKey), trace)
+		return ginC
+	} else {
+		newC := context.WithValue(c, ContextKey, trace)
+		return newC
+	}
 }
 
 func (t *HadeTraceService) GetTrace(c context.Context) *contract.TraceContext {
+	if ginC, ok := c.(*gin.Context); ok {
+		if val, ok2 := ginC.Get(string(ContextKey)); ok2 {
+			return val.(*contract.TraceContext)
+		}
+	}
+
 	if tc, ok := c.Value(ContextKey).(*contract.TraceContext); ok {
 		return tc
 	}
