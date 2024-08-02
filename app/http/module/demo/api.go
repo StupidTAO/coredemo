@@ -39,6 +39,12 @@ func (api *DemoApi) Demo(c *gin.Context) {
 		return
 	}
 	password := configService.GetString("database.mysql.password")
+
+	logger := MustMakeLog()
+	logger.Info(c, "demo1", map[string]interface{}{
+		"api":  "demo/demo",
+		"user": "caohaitao",
+	})
 	c.JSON(200, password)
 }
 

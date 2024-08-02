@@ -6,29 +6,29 @@ import (
 )
 
 // LocalDistributedProvider 提供App的具体实现方法
-type LocalDistributedProvidor struct{}
+type LocalDistributedProvider struct{}
 
 // Register 注册HadeApp方法
-func (h *LocalDistributedProvidor) Register(container framework.Container) framework.NewInstance {
+func (h *LocalDistributedProvider) Register(container framework.Container) framework.NewInstance {
 	return NewLocalDistributedService
 }
 
 // Boot 启动调用
-func (h *LocalDistributedProvidor) Boot(container framework.Container) error {
+func (h *LocalDistributedProvider) Boot(container framework.Container) error {
 	return nil
 }
 
 // IsDefer 是否延迟初始化
-func (h *LocalDistributedProvidor) IsDefer() bool {
+func (h *LocalDistributedProvider) IsDefer() bool {
 	return false
 }
 
 // Params 获取初始化参数
-func (h *LocalDistributedProvidor) Params(container framework.Container) []interface{} {
+func (h *LocalDistributedProvider) Params(container framework.Container) []interface{} {
 	return []interface{}{container}
 }
 
 // Name 获取字符串凭证
-func (h *LocalDistributedProvidor) Name() string {
+func (h *LocalDistributedProvider) Name() string {
 	return contract.DistributedKey
 }
