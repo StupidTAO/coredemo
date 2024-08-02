@@ -5,5 +5,5 @@ swagger_open: true
 dev_fresh: 1
 
 path:
-  log_folder: "/home/caohaitao/hade/log/"
-  runtime_folder: "/home/caohaitao/hade/runtime/"
+#  log_folder: "/home/caohaitao/hade/log/"
+#  runtime_folder: "/home/caohaitao/hade/runtime/"

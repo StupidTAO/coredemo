@@ -3,6 +3,7 @@ package framework
 import (
 	"errors"
 	"fmt"
+	"github.com/gohade/hade/framework/contract"
 	"sync"
 )
 
@@ -73,6 +74,7 @@ func (hade *HadeContainer) Bind(provider ServiceProvider) error {
 		method := provider.Register(hade)
 		instance, err := method(params...)
 		if err != nil {
+			fmt.Println("bind service provider ", key, " error: ", err)
 			return errors.New(err.Error())
 		}
 		hade.instances[key] = instance
@@ -100,8 +102,15 @@ func (hade *HadeContainer) Make(key string) (interface{}, error) {
 
 func (hade *HadeContainer) MustMake(key string) interface{} {
 	serv, err := hade.make(key, nil, false)
+	if key == contract.LogKey {
+		fmt.Println("### HadeContainer MustMakeLog before")
+	}
 	if err != nil {
+		fmt.Println("### HadeContainer error : ", err.Error())
 		panic("container not contain key " + key)
+	}
+	if key == contract.LogKey {
+		fmt.Printf("### HadeContainer MustMakeLog after, serv: %v\n", serv)
 	}
 	return serv
 }

@@ -5,6 +5,8 @@ package gin
 
 import (
 	"context"
+	"fmt"
+	"github.com/gohade/hade/framework/contract"
 )
 
 func (ctx *Context) BaseContext() context.Context {
@@ -19,7 +21,12 @@ func (ctx *Context) Make(key string) (interface{}, error) {
 
 // 实现 mustMake 的封装
 func (ctx *Context) MustMake(key string) interface{} {
-	return ctx.container.MustMake(key)
+	tmp := ctx.container.MustMake(key)
+	if key == contract.TraceKey {
+		fmt.Println("### Context MustMake tmp: ", tmp)
+		fmt.Printf("### Context MustMake tmp reflect type: %T\n", tmp)
+	}
+	return tmp
 }
 
 // 实现 makenew 的封装
