@@ -4,9 +4,12 @@ import "github.com/gohade/hade/framework/cobra"
 
 // AddKernelCommands will add all command/* to root command
 func AddKernelCommands(root *cobra.Command) {
+	// config 命令
+	root.AddCommand(initConfigCommand())
+	// env 命令
 	root.AddCommand(initEnvCommand())
-	//root.AddCommand(DemoCommand)
+	// app 命令
 	root.AddCommand(initAppCommand())
-	// cron
+	// cron 命令
 	root.AddCommand(initCronCommand())
 }
