@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/contract"
 	"github.com/gohade/hade/framework/provider/log/formatter"
@@ -35,7 +36,8 @@ func (l *HadeLogServiceProvider) Register(c framework.Container) framework.NewIn
 		}
 
 		cs := tcs.(contract.Config)
-		l.Driver = strings.ToLower(cs.GetString("log.Driver"))
+		l.Driver = strings.ToLower(cs.GetString("log.driver"))
+		fmt.Println("### Register log.driver: ", l.Driver)
 	}
 
 	// 根据driver的配置项确定
